@@ -1,6 +1,6 @@
 # Sistema de Gerenciamento de Eventos
 
-Este é o repositório do Sistema de Gerenciamento de Eventos, um sistema que permite aos administradores gerenciar eventos e aos participantes realizarem inscrições, acompanharem participações e gerarem relatórios. O sistema utiliza a arquitetura em camadas (MVC), programação concorrente com Threads, e um banco de dados PostgreSQL.
+Este é o repositório do Sistema de Gerenciamento de Eventos, um sistema que permite aos administradores gerenciar eventos e aos participantes realizarem inscrições, acompanharem participações e gerarem relatórios. O sistema utiliza a arquitetura em camadas, programação concorrente com Threads, e um banco de dados PostgreSQL.
 
 ## Tecnologias Utilizadas
 
