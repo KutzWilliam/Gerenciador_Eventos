@@ -1,0 +1,47 @@
+-- Tabela usuarios
+CREATE TABLE usuarios (
+    id SERIAL PRIMARY KEY,
+    nome VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    senha VARCHAR(255) NOT NULL,
+    tipo_usuario VARCHAR(20) NOT NULL,
+    cargo VARCHAR(100),
+    data_contratacao DATE,
+    data_nascimento DATE,
+    cpf VARCHAR(14)
+);
+
+-- Tabela eventos
+CREATE TABLE eventos (
+    id SERIAL PRIMARY KEY,
+    titulo VARCHAR(255) NOT NULL,
+    descricao TEXT,
+    data_hora TIMESTAMP NOT NULL,
+    duracao INTEGER NOT NULL,
+    local VARCHAR(255) NOT NULL,
+    capacidade_maxima INTEGER NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'fechado',
+    categoria VARCHAR(50) NOT NULL,
+    preco DECIMAL(10,2),
+    organizador_id INTEGER REFERENCES usuarios(id)
+);
+
+-- Tabela inscricoes
+CREATE TABLE inscricoes (
+    id SERIAL PRIMARY KEY,
+    usuario_id INTEGER REFERENCES usuarios(id),
+    evento_id INTEGER REFERENCES eventos(id),
+    data_inscricao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(20) NOT NULL DEFAULT 'ativa',
+    presenca_confirmada BOOLEAN DEFAULT FALSE
+);
+
+-- Tabela relatorios
+CREATE TABLE relatorios (
+    id SERIAL PRIMARY KEY,
+    usuario_id INTEGER REFERENCES usuarios(id),
+    evento_id INTEGER REFERENCES eventos(id),
+    data_geracao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    tipo VARCHAR(50) NOT NULL,
+    conteudo TEXT NOT NULL
+);
