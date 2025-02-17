@@ -21,6 +21,7 @@ public class InscricaoEventosView extends JFrame {
     private DefaultTableModel modeloTabela;
     private EventoController eventoController;
     private InscricaoController inscricaoController;
+    private boolean running = true;
     private int usuarioId; // ID do usuário logado (deve ser passado no login)
 
     public InscricaoEventosView(Usuario usuario) {
@@ -29,35 +30,41 @@ public class InscricaoEventosView extends JFrame {
         inscricaoController = new InscricaoController();
 
         setTitle("Gerenciamento de Inscrições");
-        setSize(800, 500);
+        setSize(800, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
+        
+        Color primaryColor = new Color(0x00796B);
+        Font titleFont = new Font("Arial", Font.BOLD, 20);
 
         // Layout principal
-        JPanel painelPrincipal = new JPanel(new BorderLayout());
+        JLabel painelPrincipal = new JLabel("Gerenciamento de Inscrições", SwingConstants.CENTER);
+        painelPrincipal.setFont(titleFont);
+        painelPrincipal.setForeground(primaryColor);
+        add(painelPrincipal, BorderLayout.NORTH);
         
         // Tabela de eventos
-        String[] colunas = {"ID", "Nome", "Capacidade", "Status"};
+        String[] colunas = {"ID", "Nome","Duração", "Valor","Local","Capacidade", "Status"};
         modeloTabela = new DefaultTableModel(colunas, 0);
         tabelaEventos = new JTable(modeloTabela);
         JScrollPane scrollPane = new JScrollPane(tabelaEventos);
-        painelPrincipal.add(scrollPane, BorderLayout.CENTER);
+        add(scrollPane, BorderLayout.CENTER);
 
         // Painel de botões
-        JPanel painelBotoes = new JPanel();
-        btnInscrever = new JButton("Inscrever-se");
-        btnCancelar = new JButton("Cancelar Inscrição");
-        btnConfirmarPresenca = new JButton("Acompanhar Inscriçôes");
+        JPanel painelBotoes = new JPanel(new FlowLayout());
+        JButton btnInscrever = criarBotao("Inscrever-se");
+        JButton btnCancelar = criarBotao("Cancelar Inscrição");
+        JButton btnConfirmarPresenca = criarBotao("Acompanhar Inscriçôes");
 
         painelBotoes.add(btnInscrever);
         painelBotoes.add(btnCancelar);
         painelBotoes.add(btnConfirmarPresenca);
 
-        painelPrincipal.add(painelBotoes, BorderLayout.SOUTH);
+        add(painelBotoes, BorderLayout.SOUTH);
 
-        add(painelPrincipal);
 
         carregarEventos();
+        iniciarThreadAtualizacao();
 
         // Ações dos botões
         btnInscrever.addActionListener(new ActionListener() {
@@ -83,15 +90,25 @@ public class InscricaoEventosView extends JFrame {
             }
         });
     }
+    
+    private JButton criarBotao(String texto) {
+        JButton botao = new JButton(texto);
+        botao.setBackground(new Color(0x00796B));
+        botao.setForeground(Color.WHITE);
+        botao.setFont(new Font("Arial", Font.BOLD, 14));
+        botao.setFocusPainted(false);
+        botao.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        return botao;
+    }
 
-    private void carregarEventos() {
+    public void carregarEventos() {
         try {
             List<Evento> eventos = eventoController.listarEventos();
             modeloTabela.setRowCount(0); // Limpar tabela
 
             for (Evento evento : eventos) {
                 modeloTabela.addRow(new Object[]{
-                    evento.getId(), evento.getTitulo(), evento.getCapacidadeMaxima(), evento.getStatus()
+                    evento.getId(), evento.getTitulo(), evento.getDuracao(), evento.getPreco(), evento.getLocal(), evento.getCapacidadeMaxima(), evento.getStatus()
                 });
             }
         } catch (SQLException e) {
@@ -110,7 +127,7 @@ public class InscricaoEventosView extends JFrame {
         }
 
         int eventoId = (int) modeloTabela.getValueAt(linhaSelecionada, 0);
-        String status = (String) modeloTabela.getValueAt(linhaSelecionada, 3);
+        String status = (String) modeloTabela.getValueAt(linhaSelecionada, 6);
         
         if (!status.equals("Aberto")) {
             JOptionPane.showMessageDialog(this, "As inscrições só podem ser feitas em eventos abertos.");
@@ -140,7 +157,7 @@ public class InscricaoEventosView extends JFrame {
         }
 
         int eventoId = (int) modeloTabela.getValueAt(linhaSelecionada, 0);
-        String status = (String) modeloTabela.getValueAt(linhaSelecionada, 3);
+        String status = (String) modeloTabela.getValueAt(linhaSelecionada, 6);
         
         if (!status.equals("Aberto")) {
             JOptionPane.showMessageDialog(this, "Você só pode cancelar inscrições enquanto o evento estiver aberto.");
@@ -153,6 +170,43 @@ public class InscricaoEventosView extends JFrame {
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Erro ao cancelar inscrição: " + e.getMessage());
         }
+    }
+    
+    private void iniciarThreadAtualizacao() {
+        new Thread(() -> {
+            while (running) {
+                try {
+                    List<Evento> eventos = eventoController.listarEventos();
+                    for (int i = 0; i < modeloTabela.getRowCount(); i++) {
+                        int eventoId = (int) modeloTabela.getValueAt(i, 0);
+                        Evento eventoAtualizado = eventoController.buscarEventoPorId(eventoId);
+                        if (!modeloTabela.getValueAt(i, 6).equals(eventoAtualizado.getStatus())) {
+                            modeloTabela.setValueAt(eventoAtualizado.getStatus(), i, 6);
+                            System.out.println("Evento " + eventoId + " atualizado para: " + eventoAtualizado.getStatus());
+                        }
+                        if (!modeloTabela.getValueAt(i, 3).equals(eventoAtualizado.getPreco())) {
+                            modeloTabela.setValueAt(eventoAtualizado.getPreco(), i, 3);
+                            System.out.println("Preço " + eventoId + " atualizado para: " + eventoAtualizado.getPreco());
+                        }
+                        if (!modeloTabela.getValueAt(i, 4).equals(eventoAtualizado.getLocal())) {
+                            modeloTabela.setValueAt(eventoAtualizado.getLocal(), i, 4);
+                            System.out.println("Local " + eventoId + " atualizado para: " + eventoAtualizado.getLocal());
+                        }
+                        if (!modeloTabela.getValueAt(i, 5).equals(eventoAtualizado.getCapacidadeMaxima())) {
+                            modeloTabela.setValueAt(eventoAtualizado.getCapacidadeMaxima(), i, 5);
+                            System.out.println("Capacidade " + eventoId + " atualizado para: " + eventoAtualizado.getCapacidadeMaxima());
+                        }
+                    }
+                    Thread.sleep(5000);
+                } catch (SQLException | InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
+    public void pararThread() {
+        running = false;
     }
 
     private void incricoesCandidato() {

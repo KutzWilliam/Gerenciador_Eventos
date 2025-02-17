@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Random;
 
+import entities.Evento;
 import entities.Inscricao;
 import entities.Relatorio;
 import service.EventoController;
@@ -22,6 +23,7 @@ public class IncricaoCandidatoView extends JDialog {
     private EventoController eventoController;
     private InscricaoController inscricaoController;
     private RelatorioController relatorioController;
+    private boolean running = true;
     private int usuarioId;
 
     public IncricaoCandidatoView(JFrame parent, int usuarioId) {
@@ -57,6 +59,7 @@ public class IncricaoCandidatoView extends JDialog {
         add(painelPrincipal);
 
         carregarInscricoes();
+        iniciarThreadAtualizacao();
 
         btnCancelar.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -144,6 +147,31 @@ public class IncricaoCandidatoView extends JDialog {
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Erro ao confirmar presença: " + e.getMessage());
         }
+    }
+    
+    private void iniciarThreadAtualizacao() {
+        new Thread(() -> {
+            while (running) {
+                try {
+                    List<Evento> eventos = eventoController.listarEventos();
+                    for (int i = 0; i < modeloTabela.getRowCount(); i++) {
+                        int eventoId = (int) modeloTabela.getValueAt(i, 0);
+                        Evento eventoAtualizado = eventoController.buscarEventoPorId(eventoId);
+                        if (!modeloTabela.getValueAt(i, 3).equals(eventoAtualizado.getStatus())) {
+                            modeloTabela.setValueAt(eventoAtualizado.getStatus(), i, 3);
+                            System.out.println("Evento " + eventoId + " atualizado para: " + eventoAtualizado.getStatus());
+                        }
+                    }
+                    Thread.sleep(5000);
+                } catch (SQLException | InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
+    public void pararThread() {
+        running = false;
     }
 
     private void gerarRelatorioEvento() throws SQLException {

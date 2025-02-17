@@ -224,7 +224,7 @@ public class EventoView extends JFrame {
         }
         
         // Abre a tela do relatório
-        RelatorioView relatorioView = new RelatorioView(EventoView(), relatorios);
+        RelatorioAdminView relatorioView = new RelatorioAdminView(EventoView(), relatorios);
         relatorioView.setVisible(true);
         
         JOptionPane.showMessageDialog(this, "Relatório gerado com sucesso!");

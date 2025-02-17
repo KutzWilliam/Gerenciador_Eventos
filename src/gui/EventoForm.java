@@ -1,6 +1,9 @@
 package gui;
 
 import javax.swing.*;
+
+import com.toedter.calendar.JDateChooser;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.sql.SQLException;
@@ -14,7 +17,7 @@ public class EventoForm extends JDialog {
     private JTextField txtTitulo, txtDescricao, txtDuracao, txtLocal, txtCapacidade, txtCategoria, txtPreco;
     private int txtId;
     private JComboBox<String> comboStatus;
-    private JSpinner spinnerDataHora;
+    private JDateChooser spinnerDataHora;
     private JButton btnSalvar, btnCancelar;
 
     public EventoForm(JFrame parent, Evento evento, int usuarioId) {
@@ -35,10 +38,11 @@ public class EventoForm extends JDialog {
         addLabelAndField(panelMain, "Título:", txtTitulo = new JTextField());
         addLabelAndField(panelMain, "Descrição:", txtDescricao = new JTextField());
         
+        
+
         panelMain.add(new JLabel("Data e Hora:"));
-        spinnerDataHora = new JSpinner(new SpinnerDateModel());
-        JSpinner.DateEditor editor = new JSpinner.DateEditor(spinnerDataHora, "yyyy-MM-dd HH:mm:ss");
-        spinnerDataHora.setEditor(editor);
+        spinnerDataHora = new JDateChooser();
+        getContentPane().add(new JLabel("Data de Nascimento:"));
         panelMain.add(spinnerDataHora);
         
         addLabelAndField(panelMain, "Duração (minutos):", txtDuracao = new JTextField());
@@ -87,7 +91,7 @@ public class EventoForm extends JDialog {
     private void preencherDados() {
         txtTitulo.setText(evento.getTitulo());
         txtDescricao.setText(evento.getDescricao());
-        spinnerDataHora.setValue(evento.getDataHora());
+        spinnerDataHora.setDate(evento.getDataHora());
         txtDuracao.setText(String.valueOf(evento.getDuracao()));
         txtLocal.setText(evento.getLocal());
         txtCapacidade.setText(String.valueOf(evento.getCapacidadeMaxima()));
@@ -104,7 +108,7 @@ public class EventoForm extends JDialog {
 
             evento.setTitulo(txtTitulo.getText());
             evento.setDescricao(txtDescricao.getText());
-            evento.setDataHora((Date) spinnerDataHora.getValue());
+            evento.setDataHora((Date) spinnerDataHora.getDate());
             evento.setDuracao(Integer.parseInt(txtDuracao.getText()));
             evento.setLocal(txtLocal.getText());
             evento.setCapacidadeMaxima(Integer.parseInt(txtCapacidade.getText()));
